@@ -1,0 +1,109 @@
+package reliability
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"time"
+)
+
+const defaultPingInterval = 30 * time.Second
+
+func Pinger(ctx context.Context, w io.Writer, reset <-chan time.Duration) {
+	var interval time.Duration
+
+	select {
+	case <-ctx.Done():
+		return
+	case interval = <-reset: // pulled initial interval off reset channel		// 1
+	default:
+	}
+
+	if interval <= 0 {
+		interval = defaultPingInterval
+	}
+
+	timer := time.NewTimer(interval) // 2
+	defer func() {
+		if !timer.Stop() {
+			<-timer.C
+		}
+	}()
+
+	for {
+		select {
+		case <-ctx.Done(): // 3
+			return
+		case newInterval := <-reset: // 4
+			if !timer.Stop() {
+				<-timer.C
+			}
+			if newInterval > 0 {
+				interval = newInterval
+			}
+		case <-timer.C: // 5
+			if _, err := w.Write([]byte("ping")); err != nil {
+				// track and act on consecutive timeouts here
+				return
+			}
+		}
+		_ = timer.Reset(interval) // 6
+	}
+}
+
+func ExamplePinger() {
+	ctx, cancel := context.WithCancel(context.Background())
+	r, w := io.Pipe() // in lieu of net.Conn - acts like a virtual wire
+	done := make(chan struct{})
+	resetTimer := make(chan time.Duration, 1)
+
+	resetTimer <- time.Second // initial ping interval
+	go func() {
+		Pinger(ctx, w, resetTimer)
+		close(done)
+	}()
+
+	receivePing := func(d time.Duration, r io.Reader) {
+		if d >= 0 {
+			fmt.Printf("resetting timer (%s)\n", d)
+			resetTimer <- d
+		}
+		now := time.Now()
+		buf := make([]byte, 1024)
+		n, err := r.Read(buf)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Printf("received %q (%s)\n",
+			buf[:n], time.Since(now).Round(100*time.Millisecond))
+	}
+
+	for i, v := range []int64{0, 200, 300, 0, -1, -1, -1} {
+		fmt.Printf("Run %d:\n", i+1)
+		receivePing(time.Duration(v)*time.Millisecond, r)
+	}
+	cancel()
+	<-done
+}
+
+// ensures the pinger exits after canceling the context
+// Output:
+// 3  Run 1:
+// resetting timer (0s)
+// received "ping" (1s)
+// 4 Run 2:
+// resetting timer (200ms)
+// received "ping" (200ms)
+// 5  Run 3:
+// resetting timer (300ms)
+// received "ping" (300ms)
+// 6 Run 4:
+// resetting timer (0s)
+// received "ping" (300ms)
+// 7 Run 5:
+// received "ping" (300ms)
+// Run 6:
+// received "ping" (300ms)
+// Run 7:
+// received "ping" (300ms)
