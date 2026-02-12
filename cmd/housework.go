@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Nisrgg/network-programming/03_service-architecture/housework"
-	// storage "github.com/Nisrgg/network-programming/03_service-architecture/json"
-	storage "github.com/Nisrgg/network-programming/03_service-architecture/gob"
-	// storage "github.com/Nisrgg/network-programming/03_service-architecture/json"
+	"github.com/Nisrgg/network-programming/03_service-architecture/data_serialization/housework"
+	// storage "github.com/Nisrgg/network-programming/03_service-architecture/data_serialization/json"
+	storage "github.com/Nisrgg/network-programming/03_service-architecture/data_serialization/gob"
+	// storage "github.com/Nisrgg/network-programming/03_service-architecture/data_serialization/json"
 )
 
 var dataFile string

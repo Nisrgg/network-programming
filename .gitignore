@@ -29,3 +29,7 @@
 # Other
 *.txt
 *.pem
+housework.db
+housework.gob
+housework.json
+housework.pb

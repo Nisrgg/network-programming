@@ -13,9 +13,9 @@ message Chores {
 }
 
 service RobotMaid {
-    rpc Add (Chores) returns (Response);
-    rpc Complete (CompleteRequest) returns (Response);
-    rpc List (Empty) returns (Chores);
+    rpc Add (Chores) returns (Response) {};
+    rpc Complete (CompleteRequest) returns (Response) {};
+    rpc List (Empty) returns (Chores) {};
 }
 
 message CompleteRequest {

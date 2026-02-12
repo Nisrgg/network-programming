@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"io"
 
-	"github.com/Nisrgg/network-programming/03_service-architecture/housework"
+	"github.com/Nisrgg/network-programming/03_service-architecture/data_serialization/housework"
 )
 
 func Load(r io.Reader) ([]*housework.Chore, error) {

@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.4 // indirect
+	go.uber.org/multierr v1.11.0
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/grpc v1.78.0 // indirect
